@@ -1,66 +1,30 @@
 pipeline {
     agent any
-<<<<<<< HEAD
     tools {
         maven 'LocalMVN'
         jdk 'LocalJDK'
     }
     stages {
-        stage ('Artifactory configuration') {
+        stage ('Build') {
             steps {
-                rtServer (
-                    id: "maven_lib_release_local",
-                    url: "http://52.142.15.74:8081/artifactory",
-                    username: "admin",
-                    password: "jfrog123"
-
-                )
-
-                rtMavenDeployer (
-                    id: "MAVEN_DEPLOYER",
-                    serverId: "maven_lib_release_local",
-                    releaseRepo: "libs-release-local",
-                    snapshotRepo: "libs-snapshot-local"
-                )
-        
+                sh 'mvn clean install'
+                sh 'curl -T /var/lib/jenkins/workspace/maven-build-jmeter-test-integration/target/jpetstore.war "http://tomcat:tomcat@137.117.85.109:8080/manager/text/deploy?path=/myApp&update=true"
+'
             }
         }
-        stage ('Exec Maven') {
+        stage ('Jmeter Test') {
             steps {
-                rtMavenRun (
-                    pom: 'pom.xml',
-                    goals: 'clean install',
-                    deployerId: "MAVEN_DEPLOYER"
-                )
+               sh 'mvn jmeter:jmeter'
+                
             }
         }
-    
+   
     }
-}
-=======
-
-    stages {
-        stage ('Compile Stage') {
-            steps {
-                withMaven(maven : 'LocalMaven') {
-                    sh 'mvn clean install'
-                }
-            }
-        }
-    stage ('Testing Stage') {
-            steps {
-                withMaven(maven : 'LocalMaven') {
-                    sh 'mvn test'
-                }
-            }
-        }
-        stage ('Deployment Stage') {
-            steps {
-                withMaven(maven : 'LocalMaven') {
-                    sh 'mvn deploy'
-                }
-            }
+    post {
+        always {
+                
+                perfReport filterRegex: '', sourceDataFiles: '/var/lib/jenkins/workspace/maven-build-jmeter-test-integration/src/test/resources/test.csv'
+               
         }
     }
 }
->>>>>>> 88a1f2b7b72aa246ab13298949019b345d337a83
