@@ -5,7 +5,12 @@ pipeline {
         jdk 'LocalJDK'
     }
     stages {
-        
+        stage ('Build') {
+            steps {
+                sh 'mvn clean install'
+                sh 'curl -T /var/lib/jenkins/workspace/Complete-CI-CD-with-Jmeter-Test/target/JenkinsDemoApp-0.0.1-SNAPSHOT.war "http://tomcat:tomcat@137.117.85.109:8080/manager/text/deploy?path=/JenkinsDemoApp&update=true"'
+            }
+        }
         stage ('Jmeter Test') {
             steps {
                sh 'mvn jmeter:jmeter'
